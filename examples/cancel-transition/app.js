@@ -5,19 +5,11 @@ var Routes = ReactRouter.Routes;
 var Route = ReactRouter.Route;
 var Link = ReactRouter.Link;
 
-var RouteMixin = {
-  render: function() {}
-}
-
-var FormRoute = React.createClass({
-  mixins: [RouteMixin]
-});
-
 var Main = React.createClass({
   render: function() {
     return (
       <Routes handler={App}>
-        <FormRoute name="form" handler={Form} />
+        <Route name="form" handler={Form} />
         <Route name="about" handler={About} />
       </Routes>
     );
@@ -30,7 +22,7 @@ var App = React.createClass({
       <div>
         <p><Link to="about">About</Link> | <Link to="form">Form</Link></p>
         <p>Go to the form, fill it out without submitting, then click the about link</p>
-        {this.props.activeRoute}
+        {this.props.activeRoute || <h1>Index</h1>}
       </div>
     );
   }
@@ -46,20 +38,24 @@ var About = React.createClass({
   }
 });
 
-var Form = React.createClass({
-  mixins: [RouteHandler],
+console.log(ReactRouter.RouteHandler);
 
-  handleTransitionOut: function(transition) {
+var Form = React.createClass({
+  mixins: [ReactRouter.RouteHandler],
+
+  componentWillTransition: function(transition) {
     if (this.refs.email.getDOMNode().value !== '') {
-      var leave = prompt("You have an unsubmitted form, are you sure you want to leave?");
+      var leave = confirm("You have an unsubmitted form, are you sure you want to leave?");
       if (!leave) {
         transition.cancel();
       }
     }
   },
 
-  handleSubmit: function() {
-    ReactRouter.transitionTo('/');
+  handleSubmit: function(event) {
+    event.preventDefault();
+    this.refs.email.getDOMNode().value = '';
+    this.transitionTo('/');
   },
 
   render: function() {
@@ -68,6 +64,7 @@ var Form = React.createClass({
         <h1>Form</h1>
         <form onSubmit={this.handleSubmit}>
           <label>Email: <input ref="email"/></label>
+          <button type="submit">Go</button>
         </form>
       </div>
     );
